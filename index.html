@@ -68,7 +68,7 @@
     if(hash === PW_HASH){
       document.getElementById('gate-card').style.display = 'none';
       const frame = document.getElementById('app-frame');
-      frame.src = 'prototype.html';
+      frame.src = 'prototype.html?v=' + Date.now(); // 캐시 방지: 매번 최신 파일을 새로 불러옴
       frame.style.display = 'block';
     } else {
       err.textContent = '비밀번호가 올바르지 않습니다.';

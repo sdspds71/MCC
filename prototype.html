@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCC · 1200%룰 · 차익거래 관리시스템 (Prototype)</title>
+<style>
+  :root{
+    --ink:#152238;
+    --ink-soft:#33425c;
+    --navy:#1B2A4A;
+    --navy-2:#233a63;
+    --teal:#0E7C86;
+    --teal-soft:#E4F1F2;
+    --bg:#F3F5F8;
+    --card:#FFFFFF;
+    --line:#E2E6ED;
+    --line-soft:#EEF1F5;
+    --normal:#16794F;
+    --normal-bg:#E8F5EE;
+    --near:#B5730A;
+    --near-bg:#FBF1DF;
+    --exceed:#C23B3B;
+    --exceed-bg:#FBEAEA;
+    --na:#8A93A6;
+    --na-bg:#EEF0F3;
+    --font-ui:'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+    --font-mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-ui);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;}
+  button{font-family:inherit;cursor:pointer;}
+  .app{max-width:1240px;margin:0 auto;padding:0 20px 60px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 16px;}
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{font-family:var(--font-mono);font-weight:700;font-size:22px;letter-spacing:1px;color:var(--navy);
+    background:linear-gradient(135deg,var(--teal),#0a5b63);-webkit-background-clip:text;background-clip:text;color:transparent;
+    position:relative;cursor:default;}
+  .brand .mark:hover::after{content:"M(1000) + C(100) + C(100) = 1200";position:absolute;left:0;top:28px;
+    background:var(--navy);color:#fff;font-size:11px;padding:6px 9px;border-radius:6px;white-space:nowrap;font-family:var(--font-ui);
+    box-shadow:0 6px 16px rgba(0,0,0,.18);}
+  .brand .sub{font-size:12.5px;color:var(--ink-soft);border-left:1px solid var(--line);padding-left:10px;}
+  .meta{font-size:12px;color:var(--na);text-align:right;}
+  .meta b{color:var(--ink-soft);font-weight:600;}
+
+  /* ---------- Main nav ---------- */
+  .mainnav{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:22px;}
+  .navbtn{background:none;border:none;padding:12px 6px;margin-right:22px;font-size:15px;font-weight:600;color:var(--na);
+    border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:color .15s;}
+  .navbtn.active{color:var(--navy);border-bottom-color:var(--teal);}
+  .navbtn:hover{color:var(--navy);}
+
+  .view{display:none;}
+  .view.active{display:block;animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  h2.viewtitle{font-size:17px;margin:0 0 4px;color:var(--navy);}
+  p.viewdesc{font-size:12.5px;color:var(--na);margin:0 0 18px;}
+
+  /* ---------- Toolbar / filters ---------- */
+  .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  select{padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px;color:var(--ink-soft);}
+  .spacer{flex:1;}
+  .btn{border:none;border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:hover{background:var(--navy-2);}
+  .btn-ghost{background:#fff;color:var(--ink-soft);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-sm{padding:6px 11px;font-size:12.5px;border-radius:6px;}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+
+  /* ---------- Card / table ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-size:11.5px;color:var(--na);font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+    background:var(--line-soft);padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--line-soft);vertical-align:middle;white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FAFBFD;}
+  .mono{font-family:var(--font-mono);}
+  .link{color:var(--teal);font-weight:700;background:none;border:none;padding:0;font-family:var(--font-mono);font-size:13px;text-decoration:underline;text-underline-offset:2px;}
+  .link:hover{color:#0a5b63;}
+  .num{text-align:right;font-family:var(--font-mono);}
+  .center{text-align:center;}
+
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .tag-y{background:var(--teal-soft);color:var(--teal);}
+  .tag-n{background:var(--na-bg);color:var(--na);}
+
+  /* status badge */
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;border:none;}
+  .badge-normal{background:var(--normal-bg);color:var(--normal);}
+  .badge-near{background:var(--near-bg);color:var(--near);}
+  .badge-exceed{background:var(--exceed-bg);color:var(--exceed);cursor:pointer;}
+  .badge-exceed:hover{filter:brightness(0.95);}
+  .badge-na{background:var(--na-bg);color:var(--na);}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+  .proc-tag{font-size:10.5px;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-left:6px;}
+
+  /* gauge - signature element */
+  .gauge{width:110px;}
+  .gauge-track{position:relative;height:7px;background:#E9ECF2;border-radius:5px;overflow:visible;}
+  .gauge-fill{height:100%;border-radius:5px;transition:width .5s ease;}
+  .gauge-fill.normal{background:var(--normal);}
+  .gauge-fill.near{background:var(--near);}
+  .gauge-fill.exceed{background:var(--exceed);}
+  .gauge-mark{position:absolute;top:-3px;bottom:-3px;width:1px;background:#c7cddb;}
+  .gauge-pct{font-size:10.5px;color:var(--na);margin-top:3px;font-family:var(--font-mono);}
+
+  /* empty / skeleton */
+  .empty-state{padding:70px 20px;text-align:center;color:var(--na);}
+  .empty-state .icon{font-size:30px;margin-bottom:10px;}
+  .skel-row td{padding:13px 14px;}
+  .skel{height:12px;border-radius:5px;background:linear-gradient(90deg,#EEF1F6 25%,#E4E8EF 37%,#EEF1F6 63%);
+    background-size:400% 100%;animation:shimmer 1.3s ease infinite;}
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:0 0;}}
+
+  .subtabs{display:flex;gap:6px;margin-bottom:14px;}
+  .subtab{background:#fff;border:1px solid var(--line);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .subtab.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+  .footnote{margin-top:16px;font-size:11.5px;color:var(--na);}
+
+  /* ---------- 예상환급률 매트릭스 테이블 ---------- */
+  .legend-box{background:var(--teal-soft);border:1px solid #cfe6e8;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--ink-soft);}
+  .legend-box b{color:var(--navy);}
+  .legend-chip{display:inline-flex;align-items:center;gap:5px;margin-right:16px;font-family:var(--font-mono);}
+  .legend-swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  .table-scroll{overflow-x:auto;}
+  table.rmatrix{border-collapse:collapse;font-size:12px;min-width:100%;}
+  table.rmatrix th, table.rmatrix td{border:1px solid var(--line);padding:6px 8px;text-align:center;white-space:nowrap;}
+  table.rmatrix thead th{background:var(--line-soft);color:var(--ink-soft);font-weight:700;font-size:11px;}
+  table.rmatrix thead tr.grp th{color:var(--navy);font-size:11.5px;}
+  table.rmatrix td.lbl{text-align:left;font-weight:600;color:var(--ink);background:#fff;}
+  table.rmatrix td.mono{font-family:var(--font-mono);}
+  table.rmatrix col.month{width:30px;}
+  table.rmatrix td.m0{color:var(--na);background:#fafbfd;}
+  table.rmatrix td.m1{color:var(--teal);background:var(--teal-soft);font-weight:700;}
+  table.rmatrix td.mpending{color:#c9ccd4;background:repeating-linear-gradient(135deg,#f5f6f8,#f5f6f8 4px,#eceef2 4px,#eceef2 8px);}
+  table.rmatrix tbody tr:hover td{background:#FAFBFD;}
+  table.rmatrix tbody tr:hover td.m1{background:#dcf0f1;}
+  table.rmatrix tbody tr:hover td.mpending{background:repeating-linear-gradient(135deg,#eef0f3,#eef0f3 4px,#e4e7ec 4px,#e4e7ec 8px);}
+
+  /* ---------- Modal (증권번호 팝업) ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,40,.45);display:flex;align-items:center;justify-content:center;
+    z-index:50;opacity:0;pointer-events:none;transition:opacity .18s;}
+  .overlay.show{opacity:1;pointer-events:auto;}
+  .modal{background:#fff;border-radius:14px;width:640px;max-width:92vw;max-height:86vh;overflow:auto;
+    box-shadow:0 20px 60px rgba(10,20,40,.25);transform:translateY(10px);transition:transform .18s;}
+  .overlay.show .modal{transform:translateY(0);}
+  .modal-head{padding:20px 24px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;}
+  .modal-head h3{margin:0 0 4px;font-size:16px;color:var(--navy);font-family:var(--font-mono);}
+  .modal-head .p{font-size:12.5px;color:var(--na);}
+  .modal-close{background:none;border:none;font-size:20px;color:var(--na);line-height:1;padding:2px;}
+  .modal-close:hover{color:var(--ink);}
+  .modal-body{padding:18px 24px;}
+  .modal-body table{font-size:12.5px;}
+  .modal-body thead th{padding:8px 10px;}
+  .modal-body tbody td{padding:8px 10px;}
+  .modal-foot{padding:16px 24px 22px;border-top:1px solid var(--line);background:var(--line-soft);}
+  .compare-block{margin-bottom:14px;}
+  .compare-block:last-child{margin-bottom:0;}
+  .compare-title{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:7px;display:flex;justify-content:space-between;}
+  .compare-nums{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+  .compare-nums b{color:var(--ink);font-family:var(--font-mono);}
+
+  /* ---------- Drawer (초과 처리) ---------- */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(15,23,40,.35);z-index:60;opacity:0;pointer-events:none;transition:opacity .18s;}
+  .drawer-overlay.show{opacity:1;pointer-events:auto;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;background:#fff;box-shadow:-14px 0 40px rgba(10,20,40,.18);
+    transform:translateX(100%);transition:transform .22s ease;padding:24px;overflow:auto;z-index:61;}
+  .drawer-overlay.show .drawer{transform:translateX(0);}
+  .drawer h3{margin:0 0 2px;font-size:16px;color:var(--navy);}
+  .drawer .p{font-size:12.5px;color:var(--na);margin-bottom:20px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+  .field .readonly{background:var(--line-soft);border-radius:8px;padding:9px 12px;font-family:var(--font-mono);font-size:13px;}
+  .field select, .field textarea, .field input{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;}
+  .field textarea{resize:vertical;min-height:64px;}
+  .drawer-actions{display:flex;gap:8px;margin-top:22px;}
+  .drawer-actions .btn{flex:1;justify-content:center;}
+
+  /* ---------- Toast ---------- */
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;
+    padding:12px 20px;border-radius:9px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:80;
+    display:flex;align-items:center;gap:8px;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="mark">MCC (Maximum Commission Cap)</span>
+      <span class="sub">1200%룰 · 차익거래 관리시스템 &nbsp;·&nbsp; Prototype</span>
+    </div>
+    <div class="meta">제작일 <b id="today-label">2026-08-04</b> &nbsp;|&nbsp; 로그인 <b>박동수 (컴플라이언스팀)</b></div>
+  </div>
+
+  <nav class="mainnav">
+    <button class="navbtn active" data-view="contracts">계약 가져오기</button>
+    <button class="navbtn" data-view="monitoring">모니터링결과</button>
+    <button class="navbtn" data-view="refund">보험회사별 상품별 예상환급률</button>
+  </nav>
+
+  <!-- ===================== 화면1. 계약 가져오기 ===================== -->
+  <section id="view-contracts" class="view active">
+    <h2 class="viewtitle">계약 가져오기</h2>
+    <p class="viewdesc">GA Legacy 계약DB와 API를 통해 신규·변경 계약을 수신합니다. (프로토타입 — 실제 API 연동 없음, 목업 데이터로 시연)</p>
+
+    <div class="toolbar">
+      <select id="f-ins"><option value="">보험회사 전체</option></select>
+      <select id="f-status"><option value="">계약상태 전체</option><option value="유지">유지</option><option value="해지">해지</option></select>
+      <select id="f-1200"><option value="">1200%대상 전체</option><option value="Y">대상(Y)</option><option value="N">비대상(N)</option></select>
+      <select id="f-arb"><option value="">차익거래대상 전체</option><option value="Y">대상(Y)</option><option value="N">비대상(N)</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="btn-fetch">⇅ 계약 가져오기</button>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>보험회사</th><th>증권번호</th><th>상품명</th><th>계약체결일</th>
+          <th style="text-align:right;">월납보험료</th><th class="center">계약상태</th>
+          <th class="center">1200%대상</th><th class="center">차익거래대상</th>
+        </tr></thead>
+        <tbody id="contracts-tbody"></tbody>
+      </table>
+      <div id="contracts-empty" class="empty-state">
+        <div class="icon">⤓</div>
+        <div>가져온 계약이 없습니다.</div>
+        <div style="font-size:12px;margin-top:4px;">상단의 <b>계약 가져오기</b> 버튼을 눌러 보험회사 데이터를 불러오세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 화면3. 모니터링결과 ===================== -->
+  <section id="view-monitoring" class="view">
+    <h2 class="viewtitle">모니터링결과</h2>
+    <p class="viewdesc">계약별 지급 수수료등이 판정기준을 초과했는지 확인합니다. 상태 배지가 <b style="color:var(--exceed)">초과(빨강)</b>인 항목을 클릭하면 처리 화면이 열립니다.</p>
+
+    <div class="subtabs">
+      <button class="subtab active" data-tab="cap">1200%룰 <span style="opacity:.7;">· 1년 이내 계약</span></button>
+      <button class="subtab" data-tab="arb">차익거래 <span style="opacity:.7;">· 전체 계약</span></button>
+    </div>
+
+    <div class="toolbar">
+      <select id="m-ins"><option value="">보험회사 전체</option></select>
+      <select id="m-status"><option value="">상태 전체</option><option value="normal">정상</option><option value="near">근접</option><option value="exceed">초과</option></select>
+    </div>
+
+    <div id="tab-cap" class="card">
+      <table>
+        <thead><tr>
+          <th>증권번호</th><th>상품명</th><th>계약체결일</th><th class="center">경과일</th>
+          <th style="text-align:right;">Σ수수료등</th><th class="center">예상해약환급금<br>(80%합산)</th>
+          <th style="text-align:right;">비교기준액<br>(월납×1200%)</th><th>사용률</th><th class="center">상태</th>
+        </tr></thead>
+        <tbody id="cap-tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="tab-arb" class="card" style="display:none;">
+      <table>
+        <thead><tr>
+          <th>증권번호</th><th>계약체결일</th><th>해지여부</th>
+          <th style="text-align:right;">Σ(수수료-환수)</th><th class="center">해약환급금<br>(합산여부)</th>
+          <th style="text-align:right;">실납입보험료<br>누계</th><th>사용률</th><th class="center">상태</th>
+        </tr></thead>
+        <tbody id="arb-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="footnote">※ 본 화면의 판정수치는 프로토타입 시연을 위한 예시이며, 실제 판정엔진 로직(계약별 롤링 12개월 윈도우, 소급정산 등)은 추가 작업이 필요합니다.</div>
+  </section>
+
+  <!-- ===================== 화면5. 보험회사별 상품별 예상환급률 ===================== -->
+  <section id="view-refund" class="view">
+    <h2 class="viewtitle">보험회사별 상품별 예상환급률</h2>
+    <p class="viewdesc">상품·납입기간별 <b>표준해약공제액이 최초로 80%에 도달하는 시점(경과월)</b>을 관리합니다. 이 값은 모니터링결과 화면의 「표준해약공제 80%합산」(flag80) 판정에 사용됩니다.</p>
+
+    <div class="toolbar">
+      <select id="r-ins"><option value="">보험회사 전체</option></select>
+      <select id="r-prod"><option value="">상품명 전체</option></select>
+    </div>
+
+    <div class="legend-box">
+      <div style="margin-bottom:6px;"><b>⑦ 표준해약공제액의 80% 이상 공제여부</b> — 경과월별 판정값</div>
+      <span class="legend-chip"><span class="legend-swatch" style="background:#EEF0F3;border:1px solid var(--na);"></span>0 : 미만 공제</span>
+      <span class="legend-chip"><span class="legend-swatch" style="background:var(--teal-soft);border:1px solid var(--teal);"></span>1 : 이상 공제</span>
+      <span class="legend-chip"><span class="legend-swatch" style="background:repeating-linear-gradient(135deg,#f5f6f8,#f5f6f8 3px,#eceef2 3px,#eceef2 6px);border:1px solid var(--line);"></span>– : 전환구간(⑥-1 적용납입기간 부터~까지) · 상품별 실제 해약공제율표 확인 필요</span>
+    </div>
+
+    <div class="card">
+      <div class="table-scroll">
+        <table class="rmatrix" id="refund-table"></table>
+      </div>
+    </div>
+
+    <div class="footnote">※ 표 구조 출처: 「(2차 배포) 2026년 수수료 체계 개편 관련 FAQ」 11~13p (①~⑧ 서식). 0/1 값은 ⑥-1 적용납입기간(부터~까지, 연차)의 개시·종료 시점을 경과월로 환산하여 자동 계산하며, 부터~까지 사이(전환구간)는 상품별 실제 해약공제율표 확인이 필요하여 공란(–)으로 표시합니다.<br>
+    ※ 현재 부터/까지 값은 FAQ 서식 예시(○○생명 · ABC123)의 규칙을 전 상품에 동일 적용한 목업이며, 실제 운영 시 보험회사가 제공하는 상품별 해약공제율표 값으로 교체해야 합니다.</div>
+  </section>
+
+</div>
+
+<!-- ===================== 화면2. 수수료이력 팝업 ===================== -->
+<div class="overlay" id="fee-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="fee-title">-</h3>
+        <div class="p" id="fee-sub">-</div>
+      </div>
+      <button class="modal-close" id="fee-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <table>
+        <thead><tr><th>마감년월</th><th>구분</th><th>항목명</th><th>지급대상자</th><th style="text-align:right;">금액</th><th>지급일자</th><th>전표번호</th></tr></thead>
+        <tbody id="fee-tbody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot" id="fee-foot"></div>
+  </div>
+</div>
+
+<!-- ===================== 화면4. 초과/차익 발생 처리 ===================== -->
+<div class="drawer-overlay" id="action-overlay">
+  <div class="drawer">
+    <h3>초과 발생 처리</h3>
+    <div class="p" id="action-sub">-</div>
+
+    <div class="field">
+      <label>증권번호</label>
+      <div class="readonly" id="action-id">-</div>
+    </div>
+    <div class="field">
+      <label>구분 / 초과금액</label>
+      <div class="readonly" id="action-amt">-</div>
+    </div>
+    <div class="field">
+      <label>처리상태</label>
+      <select id="action-status">
+        <option value="대기">대기</option>
+        <option value="부지급">부지급</option>
+        <option value="환수">환수</option>
+        <option value="보류">보류</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>처리자</label>
+      <div class="readonly">김서연 (컴플라이언스팀)</div>
+    </div>
+    <div class="field">
+      <label>처리일</label>
+      <div class="readonly">2026-08-04</div>
+    </div>
+    <div class="field">
+      <label>비고</label>
+      <textarea id="action-note" placeholder="처리 사유·특이사항을 입력하세요"></textarea>
+    </div>
+
+    <div class="drawer-actions">
+      <button class="btn btn-ghost" id="action-cancel">취소</button>
+      <button class="btn btn-primary" id="action-save">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">저장되었습니다.</div>
+
+<script>
+/* =========================================================
+   MOCK DATA (실제 DB 없음 — 화면 시연용)
+   ========================================================= */
+const TODAY = '2026-08-04';
+
+const CONTRACTS = [
+  {id:'C0001', insName:'프라임생명', prodName:'행복종신보험(무배당)', prodCode:'PRD001', signDate:'2026-07-05', monthly:150000, contractStatus:'유지', cancelDate:null, apply1200:true,  applyArb:true,  flag80:false, expected12m:0,      actualPaidTotal:150000,  surrenderAtCancel:0},
+  {id:'C0002', insName:'한별화재',   prodName:'튼튼정기보험',           prodCode:'PRD004', signDate:'2026-07-12', monthly:130000, contractStatus:'유지', cancelDate:null, apply1200:true,  applyArb:true,  flag80:true,  expected12m:80000,  actualPaidTotal:130000,  surrenderAtCancel:0},
+  {id:'C0003', insName:'다온생명',   prodName:'든든종신보험',           prodCode:'PRD002', signDate:'2026-07-20', monthly:200000, contractStatus:'유지', cancelDate:null, apply1200:true,  applyArb:true,  flag80:false, expected12m:0,      actualPaidTotal:200000,  surrenderAtCancel:0},
+  {id:'C0004', insName:'청람화재',   prodName:'안심장기보험',           prodCode:'PRD005', signDate:'2026-07-01', monthly:180000, contractStatus:'유지', cancelDate:null, apply1200:true,  applyArb:true,  flag80:true,  expected12m:250000, actualPaidTotal:360000,  surrenderAtCancel:0},
+  {id:'C0005', insName:'프라임생명', prodName:'스마트건강보험',         prodCode:'PRD003', signDate:'2026-03-10', monthly:100000, contractStatus:'유지', cancelDate:null, apply1200:false, applyArb:true,  flag80:false, expected12m:0,      actualPaidTotal:400000,  surrenderAtCancel:0},
+  {id:'C0006', insName:'한별화재',   prodName:'튼튼정기보험',           prodCode:'PRD004', signDate:'2026-03-15', monthly:130000, contractStatus:'해지', cancelDate:'2026-07-25', apply1200:false, applyArb:true, flag80:true, expected12m:0, actualPaidTotal:520000, surrenderAtCancel:60000},
+  {id:'C0007', insName:'다온생명',   prodName:'든든종신보험',           prodCode:'PRD002', signDate:'2026-03-05', monthly:220000, contractStatus:'유지', cancelDate:null, apply1200:false, applyArb:true,  flag80:false, expected12m:0,      actualPaidTotal:1100000, surrenderAtCancel:0},
+  {id:'C0008', insName:'청람화재',   prodName:'안심장기보험',           prodCode:'PRD005', signDate:'2026-03-20', monthly:180000, contractStatus:'해지', cancelDate:'2026-07-15', apply1200:false, applyArb:true, flag80:true, expected12m:0, actualPaidTotal:720000, surrenderAtCancel:40000},
+  {id:'C0009', insName:'가나손해보험', prodName:'우리집안심보험(장기)', prodCode:'PRD007', signDate:'2026-05-10', monthly:140000, contractStatus:'유지', cancelDate:null, apply1200:false, applyArb:true,  flag80:false, expected12m:0,      actualPaidTotal:420000,  surrenderAtCancel:0},
+  {id:'C0010', insName:'마바생명',   prodName:'종합보장보험',           prodCode:'PRD006', signDate:'2025-11-20', monthly:160000, contractStatus:'유지', cancelDate:null, apply1200:false, applyArb:false, flag80:false, expected12m:0,      actualPaidTotal:1440000, surrenderAtCancel:0},
+];
+
+const FEES = {
+  C0001:[
+    {ym:'202607',cat:'수수료',item:'모집수수료',payee:'홍길동',amount:900000,payDate:'2026-07-31',trx:'TRX-11001'},
+    {ym:'202607',cat:'시책',item:'시책비',payee:'홍길동',amount:300000,payDate:'2026-07-31',trx:'TRX-11002'},
+  ],
+  C0002:[
+    {ym:'202607',cat:'수수료',item:'모집수수료',payee:'성춘향',amount:1000000,payDate:'2026-07-31',trx:'TRX-11101'},
+    {ym:'202607',cat:'시책',item:'시책비',payee:'성춘향',amount:400000,payDate:'2026-07-31',trx:'TRX-11102'},
+    {ym:'202607',cat:'TFA활동지원',item:'정착지원금(안분)',payee:'임꺽정',amount:20000,payDate:'2026-07-31',trx:'TRX-11103'},
+  ],
+  C0003:[
+    {ym:'202607',cat:'수수료',item:'모집수수료',payee:'이몽룡',amount:1600000,payDate:'2026-07-31',trx:'TRX-11201'},
+    {ym:'202607',cat:'시책',item:'시책비',payee:'이몽룡',amount:700000,payDate:'2026-07-31',trx:'TRX-11202'},
+    {ym:'202607',cat:'오버라이드',item:'조직비례분',payee:'임꺽정',amount:200000,payDate:'2026-07-31',trx:'TRX-11203'},
+  ],
+  C0004:[
+    {ym:'202607',cat:'수수료',item:'모집수수료',payee:'홍길동',amount:1500000,payDate:'2026-07-31',trx:'TRX-11301'},
+    {ym:'202607',cat:'시책',item:'시책비',payee:'홍길동',amount:500000,payDate:'2026-07-31',trx:'TRX-11302'},
+  ],
+  C0005:[
+    {ym:'202603',cat:'수수료',item:'모집수수료',payee:'성춘향',amount:280000,payDate:'2026-03-31',trx:'TRX-12001'},
+    {ym:'202603',cat:'시책',item:'시책비',payee:'성춘향',amount:40000,payDate:'2026-03-31',trx:'TRX-12002'},
+  ],
+  C0006:[
+    {ym:'202603',cat:'수수료',item:'모집수수료',payee:'임꺽정',amount:700000,payDate:'2026-03-31',trx:'TRX-12101'},
+    {ym:'202603',cat:'시책',item:'시책비',payee:'임꺽정',amount:150000,payDate:'2026-03-31',trx:'TRX-12102'},
+    {ym:'202607',cat:'수수료',item:'모집수수료(해지환수)',payee:'임꺽정',amount:-100000,payDate:'2026-07-25',trx:'TRX-12103'},
+  ],
+  C0007:[
+    {ym:'202603',cat:'수수료',item:'모집수수료',payee:'이몽룡',amount:950000,payDate:'2026-03-31',trx:'TRX-12201'},
+    {ym:'202603',cat:'시책',item:'시책비',payee:'이몽룡',amount:100000,payDate:'2026-03-31',trx:'TRX-12202'},
+  ],
+  C0008:[
+    {ym:'202603',cat:'수수료',item:'모집수수료',payee:'홍길동',amount:900000,payDate:'2026-03-31',trx:'TRX-12301'},
+    {ym:'202603',cat:'시책',item:'시책비',payee:'홍길동',amount:100000,payDate:'2026-03-31',trx:'TRX-12302'},
+    {ym:'202607',cat:'수수료',item:'모집수수료(해지환수)',payee:'홍길동',amount:-150000,payDate:'2026-07-15',trx:'TRX-12303'},
+  ],
+  C0009:[
+    {ym:'202605',cat:'수수료',item:'모집수수료',payee:'성춘향',amount:340000,payDate:'2026-05-31',trx:'TRX-12401'},
+    {ym:'202605',cat:'시책',item:'시책비',payee:'성춘향',amount:40000,payDate:'2026-05-31',trx:'TRX-12402'},
+  ],
+  C0010:[],
+};
+
+const fmt = n => n.toLocaleString('ko-KR');
+const byId = id => CONTRACTS.find(c=>c.id===id);
+const feeSum = id => (FEES[id]||[]).reduce((s,f)=>s+f.amount,0);
+
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+
+function cap1200(c){
+  const base = c.monthly*12;
+  const raw = feeSum(c.id);
+  const withSurrender = raw + (c.flag80 ? c.expected12m : 0);
+  return {base, raw, withSurrender, pct: withSurrender/base};
+}
+function arbCheck(c){
+  const raw = feeSum(c.id);
+  const isCancelWithin3y = c.cancelDate && daysBetween(c.signDate,c.cancelDate) <= 365*3;
+  const surrenderAdd = (c.flag80 && isCancelWithin3y) ? c.surrenderAtCancel : 0;
+  const withSurrender = raw + surrenderAdd;
+  return {base:c.actualPaidTotal, raw, surrenderAdd, withSurrender, pct: withSurrender/c.actualPaidTotal, appliedSurrender: surrenderAdd>0};
+}
+function judgeStatus(pct){
+  if(pct>1) return 'exceed';
+  if(pct>=0.9) return 'near';
+  return 'normal';
+}
+const statusLabel = {normal:'정상',near:'근접',exceed:'초과',na:'대상아님'};
+
+const processState = {}; // id -> {status, note}
+
+/* =========================================================
+   화면5. 보험회사별 상품별 예상환급률 — 마스터 데이터
+   (FAQ p.11~13 서식의 ○○생명/ABC123 예시 규칙을 CONTRACTS 목업 상품에 동일 적용)
+   ========================================================= */
+const INS_CODE = {'프라임생명':'L01','한별화재':'L02','다온생명':'L03','청람화재':'L04','가나손해보험':'L05','마바생명':'L06'};
+
+// ⑥ 납입기간 / ⑥-1 적용납입기간(부터~까지, 연차) — FAQ 예시 서식 그대로
+const TERM_RULES = [
+  {term:'5년',  from:5,  to:6},
+  {term:'7년',  from:7,  to:9},
+  {term:'10년', from:10, to:14},
+  {term:'15년', from:15, to:17},
+  {term:'20년', from:18, to:22},
+  {term:'25년', from:23, to:99},
+];
+
+const MONTHS = Array.from({length:36}, (_,i)=>i+1);
+
+function refundProducts(){
+  const seen = new Set();
+  return CONTRACTS.filter(c=>{
+    if(seen.has(c.prodCode)) return false;
+    seen.add(c.prodCode); return true;
+  }).map(c=>({
+    insName:c.insName, insCode:INS_CODE[c.insName]||'-',
+    prodCode:c.prodCode, prodName:c.prodName, gu:'일반/무해지'
+  }));
+}
+
+function monthCell(from,to,month){
+  const year = Math.ceil(month/12);
+  if(year < from) return {v:'0', cls:'m0'};
+  if(year >= to) return {v:'1', cls:'m1'};
+  return {v:'–', cls:'mpending'};
+}
+
+function refundOptions(){
+  const prods = refundProducts();
+  const insSel = document.getElementById('r-ins');
+  [...new Set(prods.map(p=>p.insName))].forEach(n=>{
+    const o=document.createElement('option'); o.value=n; o.textContent=n; insSel.appendChild(o);
+  });
+}
+
+function refundProdOptions(){
+  const ins = document.getElementById('r-ins').value;
+  const prodSel = document.getElementById('r-prod');
+  prodSel.innerHTML = '<option value="">상품명 전체</option>';
+  refundProducts().filter(p=>!ins||p.insName===ins).forEach(p=>{
+    const o=document.createElement('option'); o.value=p.prodCode; o.textContent=`${p.prodName} (${p.prodCode})`; prodSel.appendChild(o);
+  });
+}
+
+function renderRefund(){
+  const insF = document.getElementById('r-ins').value;
+  const prodF = document.getElementById('r-prod').value;
+  const list = refundProducts().filter(p => (!insF||p.insName===insF) && (!prodF||p.prodCode===prodF));
+
+  const table = document.getElementById('refund-table');
+  const monthHeadCells = MONTHS.map(m=>`<th>${m}차월</th>`).join('');
+
+  let html = `
+    <colgroup>
+      <col><col><col><col><col><col><col><col>
+      ${MONTHS.map(()=>'<col class="month">').join('')}
+    </colgroup>
+    <thead>
+      <tr class="grp">
+        <th rowspan="2">① 회사명</th><th rowspan="2">② 회사코드</th><th rowspan="2">③ 상품코드</th>
+        <th rowspan="2">④ 상품명</th><th rowspan="2">⑤ 공구분</th><th rowspan="2">⑥ 납입기간</th>
+        <th colspan="2">⑥-1 적용 납입기간(연차)</th>
+        <th rowspan="2">⑦ 80%이상<br>공제여부</th>
+        <th colspan="${MONTHS.length}">⑧ 경과기간</th>
+      </tr>
+      <tr class="grp">
+        <th>부터</th><th>까지</th>
+        ${monthHeadCells}
+      </tr>
+    </thead>
+    <tbody>`;
+
+  if(list.length===0){
+    html += `<tr><td colspan="${9+MONTHS.length}" style="text-align:center;color:var(--na);padding:24px;">조건에 맞는 상품이 없습니다.</td></tr>`;
+  }
+
+  list.forEach(p=>{
+    TERM_RULES.forEach((r,i)=>{
+      html += `<tr>`;
+      if(i===0){
+        html += `<td class="lbl" rowspan="${TERM_RULES.length}">${p.insName}</td>`;
+        html += `<td class="mono" rowspan="${TERM_RULES.length}">${p.insCode}</td>`;
+        html += `<td class="mono" rowspan="${TERM_RULES.length}">${p.prodCode}</td>`;
+        html += `<td class="lbl" rowspan="${TERM_RULES.length}">${p.prodName}</td>`;
+        html += `<td rowspan="${TERM_RULES.length}">${p.gu}</td>`;
+      }
+      html += `<td>${r.term}</td><td class="mono">${r.from}</td><td class="mono">${r.to}</td>`;
+      html += `<td style="font-size:10.5px;color:var(--na);line-height:1.3;">0 – 미만공제<br>1 – 이상공제</td>`;
+      MONTHS.forEach(m=>{
+        const cell = monthCell(r.from, r.to, m);
+        html += `<td class="${cell.cls}">${cell.v}</td>`;
+      });
+      html += `</tr>`;
+    });
+  });
+
+  html += `</tbody>`;
+  table.innerHTML = html;
+}
+
+/* =========================================================
+   RENDER: 화면1 계약 가져오기
+   ========================================================= */
+let fetched = false;
+
+function insurerOptions(){
+  const names = [...new Set(CONTRACTS.map(c=>c.insName))];
+  ['#f-ins','#m-ins'].forEach(sel=>{
+    const el = document.querySelector(sel);
+    names.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); });
+  });
+}
+
+function renderContracts(){
+  const ins = document.getElementById('f-ins').value;
+  const st = document.getElementById('f-status').value;
+  const c1200 = document.getElementById('f-1200').value;
+  const carb = document.getElementById('f-arb').value;
+
+  const list = CONTRACTS.filter(c =>
+    (!ins || c.insName===ins) &&
+    (!st || c.contractStatus===st) &&
+    (!c1200 || (c1200==='Y'?c.apply1200:!c.apply1200)) &&
+    (!carb || (carb==='Y'?c.applyArb:!c.applyArb))
+  );
+
+  const tbody = document.getElementById('contracts-tbody');
+  const empty = document.getElementById('contracts-empty');
+  tbody.innerHTML = '';
+
+  if(!fetched){ empty.style.display='block'; document.querySelector('#view-contracts table').style.display='none'; return; }
+  document.querySelector('#view-contracts table').style.display='table';
+  empty.style.display = list.length? 'none':'block';
+  if(list.length===0){ empty.innerHTML = '<div class="icon">🔍</div><div>조건에 맞는 계약이 없습니다.</div>'; }
+
+  list.forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.insName}</td>
+      <td><button class="link" onclick="openFeeModal('${c.id}')">${c.id}</button></td>
+      <td>${c.prodName}</td>
+      <td class="mono">${c.signDate}</td>
+      <td class="num">${fmt(c.monthly)}원</td>
+      <td class="center">${c.contractStatus}</td>
+      <td class="center"><span class="tag ${c.apply1200?'tag-y':'tag-n'}">${c.apply1200?'Y':'N'}</span></td>
+      <td class="center"><span class="tag ${c.applyArb?'tag-y':'tag-n'}">${c.applyArb?'Y':'N'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function fetchContracts(){
+  const btn = document.getElementById('btn-fetch');
+  const tbody = document.getElementById('contracts-tbody');
+  const empty = document.getElementById('contracts-empty');
+  const table = document.querySelector('#view-contracts table');
+
+  btn.disabled = true; btn.textContent = '⇅ 보험회사 API 조회 중…';
+  empty.style.display='none'; table.style.display='table'; tbody.innerHTML='';
+  for(let i=0;i<5;i++){
+    const tr = document.createElement('tr'); tr.className='skel-row';
+    tr.innerHTML = Array(8).fill('<td><div class="skel"></div></td>').join('');
+    tbody.appendChild(tr);
+  }
+  setTimeout(()=>{
+    fetched = true;
+    btn.disabled = false; btn.textContent = '⇅ 계약 가져오기';
+    renderContracts();
+  }, 950);
+}
+
+/* =========================================================
+   RENDER: 화면3 모니터링결과
+   ========================================================= */
+function gaugeHTML(pct, status){
+  const width = Math.min(pct,1.15)*100/1.15; // 시각적으로 115%까지 표현
+  return `
+    <div class="gauge">
+      <div class="gauge-track">
+        <span class="gauge-mark" style="left:${100/1.15}%;"></span>
+        <div class="gauge-fill ${status}" style="width:${width}%;"></div>
+      </div>
+      <div class="gauge-pct">${(pct*100).toFixed(1)}%</div>
+    </div>`;
+}
+function statusBadgeHTML(id, status, overAmount, kind){
+  const proc = processState[id] && processState[id].kind===kind ? processState[id] : null;
+  const clickable = status==='exceed' ? `onclick="openActionDrawer('${id}','${kind}',${overAmount})"` : '';
+  return `<span class="badge badge-${status}" ${clickable}><span class="dot"></span>${statusLabel[status]}</span>${proc?`<span class="proc-tag">처리:${proc.status}</span>`:''}`;
+}
+
+function renderMonitoring(){
+  const ins = document.getElementById('m-ins').value;
+  const stf = document.getElementById('m-status').value;
+
+  // ---- 1200% 탭 (1년 이내 계약만) ----
+  const capTbody = document.getElementById('cap-tbody');
+  capTbody.innerHTML = '';
+  CONTRACTS.filter(c=>c.apply1200 && daysBetween(c.signDate, TODAY) <= 365 && (!ins||c.insName===ins))
+    .forEach(c=>{
+      const r = cap1200(c);
+      const status = judgeStatus(r.pct);
+      if(stf && stf!==status) return;
+      const over = Math.max(0, r.withSurrender - r.base);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><button class="link" onclick="openFeeModal('${c.id}')">${c.id}</button></td>
+        <td>${c.prodName}</td>
+        <td class="mono">${c.signDate}</td>
+        <td class="center">${daysBetween(c.signDate,TODAY)}일</td>
+        <td class="num">${fmt(r.raw)}원</td>
+        <td class="center">${c.flag80? `<span class="tag tag-y">합산 ${fmt(c.expected12m)}원</span>`:'<span class="tag tag-n">미해당</span>'}</td>
+        <td class="num">${fmt(r.base)}원</td>
+        <td>${gaugeHTML(r.pct,status)}</td>
+        <td class="center">${statusBadgeHTML(c.id,status,over,'cap')}</td>
+      `;
+      capTbody.appendChild(tr);
+    });
+
+  // ---- 차익거래 탭 (전체 계약) ----
+  const arbTbody = document.getElementById('arb-tbody');
+  arbTbody.innerHTML = '';
+  CONTRACTS.filter(c=>c.applyArb && (!ins||c.insName===ins))
+    .forEach(c=>{
+      const r = arbCheck(c);
+      const status = judgeStatus(r.pct);
+      if(stf && stf!==status) return;
+      const over = Math.max(0, r.withSurrender - r.base);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><button class="link" onclick="openFeeModal('${c.id}')">${c.id}</button></td>
+        <td class="mono">${c.signDate}</td>
+        <td>${c.cancelDate? `해지 · ${c.cancelDate}`:'유지'}</td>
+        <td class="num">${fmt(r.raw)}원</td>
+        <td class="center">${r.appliedSurrender? `<span class="tag tag-y">합산 ${fmt(r.surrenderAdd)}원</span>`:'<span class="tag tag-n">미해당</span>'}</td>
+        <td class="num">${fmt(r.base)}원</td>
+        <td>${gaugeHTML(r.pct,status)}</td>
+        <td class="center">${statusBadgeHTML(c.id,status,over,'arb')}</td>
+      `;
+      arbTbody.appendChild(tr);
+    });
+}
+
+/* =========================================================
+   화면2. 수수료이력 팝업
+   ========================================================= */
+function openFeeModal(id){
+  const c = byId(id);
+  const fees = FEES[id]||[];
+  document.getElementById('fee-title').textContent = `${c.id} · ${c.prodName}`;
+  document.getElementById('fee-sub').textContent = `${c.insName} · 계약체결일 ${c.signDate} · 월납보험료 ${fmt(c.monthly)}원 · ${c.contractStatus}${c.cancelDate?` (해지일 ${c.cancelDate})`:''}`;
+
+  let running = 0;
+  const tbody = document.getElementById('fee-tbody');
+  tbody.innerHTML = fees.length ? '' : '<tr><td colspan="7" style="text-align:center;color:var(--na);padding:24px;">배분 이력이 없습니다.</td></tr>';
+  fees.forEach(f=>{
+    running += f.amount;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${f.ym}</td><td>${f.cat}</td><td>${f.item}</td><td>${f.payee}</td>
+      <td class="num" style="color:${f.amount<0?'var(--exceed)':'var(--ink)'}">${fmt(f.amount)}원</td>
+      <td class="mono">${f.payDate}</td><td class="mono" style="color:var(--na);">${f.trx}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  let footHTML = '';
+  if(c.apply1200){
+    const r = cap1200(c); const status = judgeStatus(r.pct);
+    footHTML += `<div class="compare-block">
+      <div class="compare-title"><span>1200%룰 비교</span>${statusBadgeHTML(c.id, status, Math.max(0,r.withSurrender-r.base),'cap')}</div>
+      ${gaugeHTML(r.pct,status)}
+      <div class="compare-nums"><span>Σ수수료등 ${fmt(r.raw)}원 ${c.flag80?`+ 예상해약환급금 ${fmt(c.expected12m)}원`:''}</span><span>기준 <b>${fmt(r.base)}원</b></span></div>
+    </div>`;
+  }
+  if(c.applyArb){
+    const r = arbCheck(c); const status = judgeStatus(r.pct);
+    footHTML += `<div class="compare-block">
+      <div class="compare-title"><span>차익거래금지 비교</span>${statusBadgeHTML(c.id, status, Math.max(0,r.withSurrender-r.base),'arb')}</div>
+      ${gaugeHTML(r.pct,status)}
+      <div class="compare-nums"><span>Σ(수수료-환수) ${fmt(r.raw)}원 ${r.appliedSurrender?`+ 해약환급금 ${fmt(r.surrenderAdd)}원`:''}</span><span>실납입누계 <b>${fmt(r.base)}원</b></span></div>
+    </div>`;
+  }
+  if(!c.apply1200 && !c.applyArb){ footHTML = `<div style="font-size:12.5px;color:var(--na);">시행일 이전 계약으로 두 규정 모두 적용 대상이 아닙니다.</div>`; }
+  document.getElementById('fee-foot').innerHTML = footHTML;
+
+  document.getElementById('fee-overlay').classList.add('show');
+}
+document.getElementById('fee-close').onclick = ()=>document.getElementById('fee-overlay').classList.remove('show');
+document.getElementById('fee-overlay').addEventListener('click', e=>{ if(e.target.id==='fee-overlay') e.currentTarget.classList.remove('show'); });
+
+/* =========================================================
+   화면4. 초과 처리 드로어
+   ========================================================= */
+let currentAction = null;
+function openActionDrawer(id, kind, overAmount){
+  currentAction = {id, kind};
+  const c = byId(id);
+  document.getElementById('action-sub').textContent = kind==='cap' ? '1200%룰 초과 건 처리' : '차익거래금지 초과 건 처리';
+  document.getElementById('action-id').textContent = `${id} · ${c.prodName}`;
+  document.getElementById('action-amt').textContent = `${kind==='cap'?'1200%룰':'차익거래'} 초과금액 ${fmt(overAmount)}원`;
+  document.getElementById('action-status').value = (processState[id]&&processState[id].kind===kind) ? processState[id].status : '대기';
+  document.getElementById('action-note').value = (processState[id]&&processState[id].kind===kind) ? processState[id].note : '';
+  document.getElementById('action-overlay').classList.add('show');
+}
+document.getElementById('action-cancel').onclick = ()=>document.getElementById('action-overlay').classList.remove('show');
+document.getElementById('action-overlay').addEventListener('click', e=>{ if(e.target.id==='action-overlay') e.currentTarget.classList.remove('show'); });
+document.getElementById('action-save').onclick = ()=>{
+  if(!currentAction) return;
+  processState[currentAction.id] = {
+    kind: currentAction.kind,
+    status: document.getElementById('action-status').value,
+    note: document.getElementById('action-note').value
+  };
+  document.getElementById('action-overlay').classList.remove('show');
+  renderMonitoring();
+  showToast('처리 내용이 저장되었습니다.');
+};
+
+/* =========================================================
+   NAV / TABS / FILTERS
+   ========================================================= */
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view==='monitoring') renderMonitoring();
+    if(btn.dataset.view==='refund') renderRefund();
+  });
+});
+document.querySelectorAll('.subtab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.subtab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-cap').style.display = btn.dataset.tab==='cap' ? 'block':'none';
+    document.getElementById('tab-arb').style.display = btn.dataset.tab==='arb' ? 'block':'none';
+  });
+});
+document.getElementById('btn-fetch').addEventListener('click', fetchContracts);
+['f-ins','f-status','f-1200','f-arb'].forEach(id=>document.getElementById(id).addEventListener('change', renderContracts));
+['m-ins','m-status'].forEach(id=>document.getElementById(id).addEventListener('change', renderMonitoring));
+document.getElementById('r-ins').addEventListener('change', ()=>{ refundProdOptions(); renderRefund(); });
+document.getElementById('r-prod').addEventListener('change', renderRefund);
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* init */
+insurerOptions();
+renderContracts();
+refundOptions();
+refundProdOptions();
+renderRefund();
+</script>
+</body>
+</html>

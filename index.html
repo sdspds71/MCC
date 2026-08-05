@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCC · 1200%룰 · 차익거래 관리시스템</title>
+<style>
+  :root{
+    --ink:#152238; --ink-soft:#33425c; --navy:#1B2A4A; --navy-2:#233a63;
+    --teal:#0E7C86; --teal-soft:#E4F1F2; --bg:#F3F5F8; --card:#FFFFFF;
+    --line:#E2E6ED; --na:#8A93A6; --exceed:#C23B3B;
+    --font-ui:'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+    --font-mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{font-family:var(--font-ui);background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;}
+  .gate-card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(10,20,40,.10);
+    width:360px;max-width:90vw;padding:34px 30px 28px;text-align:center;}
+  .mark{font-family:var(--font-mono);font-weight:700;font-size:20px;letter-spacing:1px;
+    background:linear-gradient(135deg,var(--teal),#0a5b63);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{font-size:12.5px;color:var(--ink-soft);margin-top:6px;margin-bottom:26px;}
+  .field{text-align:left;margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+  .field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;}
+  .field input:focus{outline:none;border-color:var(--teal);}
+  .btn{width:100%;border:none;border-radius:8px;padding:11px 16px;font-size:14px;font-weight:700;background:var(--navy);color:#fff;cursor:pointer;margin-top:4px;}
+  .btn:hover{background:var(--navy-2);}
+  .err{font-size:12px;color:var(--exceed);margin-top:10px;min-height:16px;}
+  .shake{animation:shake .32s;}
+  @keyframes shake{10%,90%{transform:translateX(-1px);}20%,80%{transform:translateX(2px);}30%,50%,70%{transform:translateX(-4px);}40%,60%{transform:translateX(4px);}}
+  .foot{font-size:11px;color:var(--na);margin-top:18px;}
+
+  #app-frame{position:fixed;inset:0;width:100%;height:100%;border:none;display:none;}
+</style>
+</head>
+<body>
+
+  <div class="gate-card" id="gate-card">
+    <div class="mark">MCC (Maximum Commission Cap)</div>
+    <div class="sub">1200%룰 · 차익거래 관리시스템 &nbsp;·&nbsp; Prototype</div>
+    <div class="field">
+      <label for="pw">접속 비밀번호</label>
+      <input type="password" id="pw" placeholder="비밀번호를 입력하세요" autocomplete="off">
+    </div>
+    <button class="btn" id="enter-btn">입장</button>
+    <div class="err" id="err-msg"></div>
+    <div class="foot">내부 검토용 프로토타입입니다. 화면의 데이터는 모두 목업(가상) 데이터입니다.</div>
+  </div>
+
+  <iframe id="app-frame" src="" title="MCC Prototype"></iframe>
+
+<script>
+  // SHA-256("MCC2026") — 비밀번호 원문은 소스에 노출하지 않되,
+  // 이 방식은 화면 노출을 막는 수준의 간단한 게이트일 뿐 실제 보안 인증이 아닙니다.
+  const PW_HASH = "38d1e4a74ae707655f91f81a0e91f34d8f6c0459fd4b5b0fb297ca721c4f5b3b";
+
+  async function sha256(text){
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+
+  async function tryEnter(){
+    const pw = document.getElementById('pw').value;
+    const err = document.getElementById('err-msg');
+    if(!pw){ err.textContent = '비밀번호를 입력해 주세요.'; return; }
+    const hash = await sha256(pw);
+    if(hash === PW_HASH){
+      document.getElementById('gate-card').style.display = 'none';
+      const frame = document.getElementById('app-frame');
+      frame.src = 'prototype.html';
+      frame.style.display = 'block';
+    } else {
+      err.textContent = '비밀번호가 올바르지 않습니다.';
+      const card = document.getElementById('gate-card');
+      card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    }
+  }
+
+  document.getElementById('enter-btn').addEventListener('click', tryEnter);
+  document.getElementById('pw').addEventListener('keydown', e=>{ if(e.key==='Enter') tryEnter(); });
+</script>
+</body>
+</html>

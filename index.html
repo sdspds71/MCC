@@ -16,7 +16,7 @@
   html,body{height:100%;margin:0;}
   body{font-family:var(--font-ui);background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;}
   .gate-card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(10,20,40,.10);
-    width:360px;max-width:90vw;padding:34px 30px 28px;text-align:center;}
+    width:400px;max-width:90vw;padding:34px 30px 28px;text-align:center;}
   .mark{font-family:var(--font-mono);font-weight:700;font-size:20px;letter-spacing:1px;
     background:linear-gradient(135deg,var(--teal),#0a5b63);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .sub{font-size:12.5px;color:var(--ink-soft);margin-top:6px;margin-bottom:26px;}
@@ -38,14 +38,14 @@
 
   <div class="gate-card" id="gate-card">
     <div class="mark">MCC (Maximum Commission Cap)</div>
-    <div class="sub">1200%룰 · 차익거래 관리시스템 &nbsp;·&nbsp; Prototype</div>
+    <div class="sub">1200%룰 · 차익거래 관리</div>
     <div class="field">
       <label for="pw">접속 비밀번호</label>
       <input type="password" id="pw" placeholder="비밀번호를 입력하세요" autocomplete="off">
     </div>
     <button class="btn" id="enter-btn">입장</button>
     <div class="err" id="err-msg"></div>
-    <div class="foot">내부 검토용 프로토타입입니다. 화면의 데이터는 모두 목업(가상) 데이터입니다.</div>
+    <div class="foot">내부 검토용 프로토타입 (Mock-up Data)</div>
   </div>
 
   <iframe id="app-frame" src="" title="MCC Prototype"></iframe>

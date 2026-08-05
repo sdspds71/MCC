@@ -241,7 +241,7 @@
   <!-- ===================== 화면3. 모니터링결과 ===================== -->
   <section id="view-monitoring" class="view">
     <h2 class="viewtitle">모니터링결과</h2>
-    <p class="viewdesc">계약별 지급 수수료등이 판정기준을 초과했는지 확인합니다. 상태 배지가 <b style="color:var(--exceed)">초과(빨강)</b>인 항목을 클릭하면 처리 화면이 열립니다.</p>
+    <p class="viewdesc">계약별 지급 <b style="color:var(--exceed)">"수수료等"</b>이 판정기준을 초과했는지 확인합니다. 상태 배지가 <b style="color:var(--exceed)">초과(빨강)</b>인 항목의 증권번호를 클릭하면 상세 내역이 열립니다.</p>
 
     <div class="subtabs">
       <button class="subtab active" data-tab="cap">1200%룰 <span style="opacity:.7;">· 1년 이내 계약</span></button>
@@ -275,13 +275,13 @@
       </table>
     </div>
 
-    <div class="footnote">※ 본 화면의 판정수치는 프로토타입 시연을 위한 예시이며, 실제 판정엔진 로직(계약별 롤링 12개월 윈도우, 소급정산 등)은 추가 작업이 필요합니다.</div>
+    <div class="footnote">※ 본 화면의 판정수치는 프로토타입 시연을 위한 예시입니다.</div>
   </section>
 
   <!-- ===================== 화면5. 보험회사별 상품별 예상환급률 ===================== -->
   <section id="view-refund" class="view">
     <h2 class="viewtitle">보험회사별 상품별 예상환급률</h2>
-    <p class="viewdesc">상품·납입기간별 <b>표준해약공제액이 최초로 80%에 도달하는 시점(경과월)</b>을 관리합니다. 이 값은 모니터링결과 화면의 「표준해약공제 80%합산」(flag80) 판정에 사용됩니다.</p>
+    <p class="viewdesc">상품·종형·납기별 <b>(해약시) 표준해약공제액의 80% 이상을 보험료적립금에서 공제하는 보험계약</b>을 관리합니다. 이 값은 모니터링결과 화면의 「표준해약공제 80%합산」판정에 사용됩니다.</p>
 
     <div class="toolbar">
       <select id="r-ins"><option value="">보험회사 전체</option></select>
@@ -292,7 +292,7 @@
       <div style="margin-bottom:6px;"><b>⑦ 표준해약공제액의 80% 이상 공제여부</b> — 경과월별 판정값</div>
       <span class="legend-chip"><span class="legend-swatch" style="background:#EEF0F3;border:1px solid var(--na);"></span>0 : 미만 공제</span>
       <span class="legend-chip"><span class="legend-swatch" style="background:var(--teal-soft);border:1px solid var(--teal);"></span>1 : 이상 공제</span>
-      <span class="legend-chip"><span class="legend-swatch" style="background:repeating-linear-gradient(135deg,#f5f6f8,#f5f6f8 3px,#eceef2 3px,#eceef2 6px);border:1px solid var(--line);"></span>– : 전환구간(⑥-1 적용납입기간 부터~까지) · 상품별 실제 해약공제율표 확인 필요</span>
+      <span class="legend-chip"><span class="legend-swatch" style="background:repeating-linear-gradient(135deg,#f5f6f8,#f5f6f8 3px,#eceef2 3px,#eceef2 6px);border:1px solid var(--line);"></span>– : 전환구간(⑥-1 적용납입기간 부터~까지)</span>
     </div>
 
     <div class="card">
@@ -301,8 +301,8 @@
       </div>
     </div>
 
-    <div class="footnote">※ 표 구조 출처: 「(2차 배포) 2026년 수수료 체계 개편 관련 FAQ」 11~13p (①~⑧ 서식). 0/1 값은 ⑥-1 적용납입기간(부터~까지, 연차)의 개시·종료 시점을 경과월로 환산하여 자동 계산하며, 부터~까지 사이(전환구간)는 상품별 실제 해약공제율표 확인이 필요하여 공란(–)으로 표시합니다.<br>
-    ※ 현재 부터/까지 값은 FAQ 서식 예시(○○생명 · ABC123)의 규칙을 전 상품에 동일 적용한 목업이며, 실제 운영 시 보험회사가 제공하는 상품별 해약공제율표 값으로 교체해야 합니다.</div>
+    <div class="footnote">※ 표 출처: 「(2차 배포) 2026년 수수료 체계 개편 관련 FAQ」 11~13p (①~⑧ 서식). 보험회사는 필요한 정보를 모두 포함하여 GA에 제공하여야 함.(내용변경 사유 발생시 1개월 내 배포)<br>
+    ※ 현재 부터/까지 값은 FAQ 서식 예시(○○생명 · ABC123)의 규칙을 전 상품에 동일 적용한 목업이며, 보험회사가 제공하는 상품별 해약공제율표 값으로 교체합니다.</div>
   </section>
 
 </div>
@@ -532,7 +532,7 @@ function renderRefund(){
     <thead>
       <tr class="grp">
         <th rowspan="2">① 회사명</th><th rowspan="2">② 회사코드</th><th rowspan="2">③ 상품코드</th>
-        <th rowspan="2">④ 상품명</th><th rowspan="2">⑤ 공구분</th><th rowspan="2">⑥ 납입기간</th>
+        <th rowspan="2">④ 상품명</th><th rowspan="2">⑤ 종구분</th><th rowspan="2">⑥ 납입기간</th>
         <th colspan="2">⑥-1 적용 납입기간(연차)</th>
         <th rowspan="2">⑦ 80%이상<br>공제여부</th>
         <th colspan="${MONTHS.length}">⑧ 경과기간</th>

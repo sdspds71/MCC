@@ -302,7 +302,7 @@
     </div>
 
     <div class="footnote">※ 표 출처: 「(2차 배포) 2026년 수수료 체계 개편 관련 FAQ」 11~13p (①~⑧ 서식). 보험회사는 필요한 정보를 모두 포함하여 GA에 제공하여야 함.(내용변경 사유 발생시 1개월 내 배포)<br>
-    ※ 현재 부터/까지 값은 FAQ 서식 예시(○○생명 · ABC123)의 규칙을 전 상품에 동일 적용한 목업이며, 보험회사가 제공하는 상품별 해약공제율표 값으로 교체합니다.</div>
+    ※ PRD001(프라임생명·행복종신보험)의 부터/까지 값은 FAQ 서식 예시(○○생명 · ABC123)를 그대로 사용했습니다. 그 외 상품은 보험회사별 실제 해약공제율표가 아직 없어, ⑧ 경과기간(1~36차월) 안에서 0/1/전환구간이 고르게 나타나도록 값을 축소 조정한 시연용 목업입니다. 추후 보험회사가 제공하는 상품별 해약공제율표 값으로 전량 교체해야 합니다.</div>
   </section>
 
 </div>
@@ -469,15 +469,76 @@ const processState = {}; // id -> {status, note}
    ========================================================= */
 const INS_CODE = {'프라임생명':'L01','한별화재':'L02','다온생명':'L03','청람화재':'L04','가나손해보험':'L05','마바생명':'L06'};
 
-// ⑥ 납입기간 / ⑥-1 적용납입기간(부터~까지, 연차) — FAQ 예시 서식 그대로
-const TERM_RULES = [
-  {term:'5년',  from:5,  to:6},
-  {term:'7년',  from:7,  to:9},
-  {term:'10년', from:10, to:14},
-  {term:'15년', from:15, to:17},
-  {term:'20년', from:18, to:22},
-  {term:'25년', from:23, to:99},
-];
+// ⑤ 종구분: 상품별 1개 값(일반/무해지/저해지)을 무작위 배정 — 최초 1회만 배정 후 고정
+const GU_TYPES = ['일반','무해지','저해지'];
+const GU_MAP = {};
+function assignGu(prodCode){
+  if(!GU_MAP[prodCode]) GU_MAP[prodCode] = GU_TYPES[Math.floor(Math.random()*GU_TYPES.length)];
+  return GU_MAP[prodCode];
+}
+
+// ⑥ 납입기간 / ⑥-1 적용납입기간(부터~까지, 연차)
+// PRD001(프라임생명·행복종신보험)은 FAQ p.11~13 예시 서식의 수치를 그대로 사용(공식 예시, 항상 근거 있음).
+// 그 외 상품은 아직 보험회사별 실제 해약공제율표가 없어, ⑧ 경과기간(1~36차월) 구간 안에서
+// 0/1/전환구간이 고르게 나타나도록 값을 축소 조정한 "시연용 목업"입니다(실제 규정값 아님).
+const TERM_RULES_BY_PRODUCT = {
+  PRD001: [ // FAQ 예시 원본 그대로
+    {term:'5년',  from:5,  to:6},
+    {term:'7년',  from:7,  to:9},
+    {term:'10년', from:10, to:14},
+    {term:'15년', from:15, to:17},
+    {term:'20년', from:18, to:22},
+    {term:'25년', from:23, to:99},
+  ],
+  PRD002: [ // 목업: 전환구간이 36차월을 넘어서까지 이어지는 예시
+    {term:'5년',  from:2,  to:4},
+    {term:'7년',  from:4,  to:6},
+    {term:'10년', from:6,  to:9},
+    {term:'15년', from:9,  to:13},
+    {term:'20년', from:13, to:18},
+    {term:'25년', from:18, to:24},
+  ],
+  PRD003: [ // 목업: 36차월 이내에 0 → 전환 → 1 이 모두 나타나는 예시
+    {term:'5년',  from:1, to:2},
+    {term:'7년',  from:2, to:3},
+    {term:'10년', from:3, to:4},
+    {term:'15년', from:4, to:5},
+    {term:'20년', from:5, to:6},
+    {term:'25년', from:6, to:7},
+  ],
+  PRD004: [ // 목업: 짧은 납입기간만 36차월 내 전환
+    {term:'5년',  from:2,  to:3},
+    {term:'7년',  from:4,  to:5},
+    {term:'10년', from:6,  to:7},
+    {term:'15년', from:8,  to:10},
+    {term:'20년', from:10, to:13},
+    {term:'25년', from:13, to:18},
+  ],
+  PRD005: [ // 목업: 전환구간 없이 즉시 0→1로 전환(부터=까지)되는 예시
+    {term:'5년',  from:1,  to:1},
+    {term:'7년',  from:3,  to:3},
+    {term:'10년', from:5,  to:5},
+    {term:'15년', from:7,  to:7},
+    {term:'20년', from:9,  to:9},
+    {term:'25년', from:11, to:11},
+  ],
+  PRD006: [ // 목업: 대부분 전환구간(–)으로 표시되는 예시
+    {term:'5년',  from:1,  to:3},
+    {term:'7년',  from:3,  to:5},
+    {term:'10년', from:5,  to:8},
+    {term:'15년', from:8,  to:12},
+    {term:'20년', from:12, to:16},
+    {term:'25년', from:16, to:22},
+  ],
+  PRD007: [ // FAQ 예시와 동일 구조(장기 상품 — 36차월 내내 0)
+    {term:'5년',  from:5,  to:6},
+    {term:'7년',  from:7,  to:9},
+    {term:'10년', from:10, to:14},
+    {term:'15년', from:15, to:17},
+    {term:'20년', from:18, to:22},
+    {term:'25년', from:23, to:99},
+  ],
+};
 
 const MONTHS = Array.from({length:36}, (_,i)=>i+1);
 
@@ -488,7 +549,8 @@ function refundProducts(){
     seen.add(c.prodCode); return true;
   }).map(c=>({
     insName:c.insName, insCode:INS_CODE[c.insName]||'-',
-    prodCode:c.prodCode, prodName:c.prodName, gu:'일반/무해지'
+    prodCode:c.prodCode, prodName:c.prodName, gu:assignGu(c.prodCode),
+    terms: TERM_RULES_BY_PRODUCT[c.prodCode] || TERM_RULES_BY_PRODUCT.PRD001
   }));
 }
 
@@ -497,6 +559,14 @@ function monthCell(from,to,month){
   if(year < from) return {v:'0', cls:'m0'};
   if(year >= to) return {v:'1', cls:'m1'};
   return {v:'–', cls:'mpending'};
+}
+
+// ⑦ 80%이상 공제여부: 관찰기간(⑧ 1~36차월) 마지막 시점 기준 0/1 단일값
+// (전환구간이 걸쳐 있어 확정되지 않은 경우는 보수적으로 0 처리)
+// ※ ⑤~⑦은 상품의 판정 "기준"(Key) 정보이므로 ⑧ 실측 데이터 그리드와 다른 중립 스타일로 표기한다.
+function termFlag(r){
+  const last = monthCell(r.from, r.to, MONTHS[MONTHS.length-1]);
+  return last.v === '1' ? '1' : '0';
 }
 
 function refundOptions(){
@@ -549,17 +619,19 @@ function renderRefund(){
   }
 
   list.forEach(p=>{
-    TERM_RULES.forEach((r,i)=>{
+    const terms = p.terms;
+    terms.forEach((r,i)=>{
       html += `<tr>`;
       if(i===0){
-        html += `<td class="lbl" rowspan="${TERM_RULES.length}">${p.insName}</td>`;
-        html += `<td class="mono" rowspan="${TERM_RULES.length}">${p.insCode}</td>`;
-        html += `<td class="mono" rowspan="${TERM_RULES.length}">${p.prodCode}</td>`;
-        html += `<td class="lbl" rowspan="${TERM_RULES.length}">${p.prodName}</td>`;
-        html += `<td rowspan="${TERM_RULES.length}">${p.gu}</td>`;
+        html += `<td class="lbl" rowspan="${terms.length}">${p.insName}</td>`;
+        html += `<td class="mono" rowspan="${terms.length}">${p.insCode}</td>`;
+        html += `<td class="mono" rowspan="${terms.length}">${p.prodCode}</td>`;
+        html += `<td class="lbl" rowspan="${terms.length}">${p.prodName}</td>`;
+        html += `<td rowspan="${terms.length}">${p.gu}</td>`;
       }
       html += `<td>${r.term}</td><td class="mono">${r.from}</td><td class="mono">${r.to}</td>`;
-      html += `<td style="font-size:10.5px;color:var(--na);line-height:1.3;">0 – 미만공제<br>1 – 이상공제</td>`;
+      const flag = termFlag(r);
+      html += `<td class="mono">${flag}</td>`;
       MONTHS.forEach(m=>{
         const cell = monthCell(r.from, r.to, m);
         html += `<td class="${cell.cls}">${cell.v}</td>`;
